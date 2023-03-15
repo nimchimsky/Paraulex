@@ -4,6 +4,8 @@ let puntuacion = 0;
 let palabras = [];
 let pseudopalabras = [];
 let pausado = false;
+let itemInterval;
+let contadorItems = 0;
 
 // Función para cargar palabras y pseudopalabras de los archivos JSON
 function cargarItems() {
@@ -183,6 +185,7 @@ function mostrarMensajeNivel() {
     return mensajeNivel;
 }
 
+// Comienza el nivel
 function comenzarNivel() {
     // Muestra el mensaje del nivel actual
     const mensajeNivel = mostrarMensajeNivel();
@@ -196,14 +199,15 @@ function comenzarNivel() {
         const items = seleccionarItems();
 
         // Muestra los ítems en la pantalla con un intervalo de 1 segundo
-        let contadorItems = 0;
-        const intervaloItems = setInterval(() => {
+        contadorItems = 0; // Reinicia el contador de ítems (modifica esta línea)
+        clearInterval(itemInterval);
+        itemInterval = setInterval(() => {
             mostrarItem(items[contadorItems]);
             contadorItems++;
 
             // Verifica si se han mostrado todos los ítems
             if (contadorItems >= items.length) {
-                clearInterval(intervaloItems);
+                clearInterval(itemInterval);
 
                 // Espera a que todos los ítems hayan terminado de moverse
                 setTimeout(() => {
@@ -217,8 +221,8 @@ function comenzarNivel() {
                 }, 10000); // Espera 10 segundos, que es el tiempo que tardan los ítems en llegar al final
             }
         }, 1000); // Intervalo de 1 segundo entre ítems
-		 // Actualiza el nivel en la pantalla
-		actualizarNivel();
+        // Actualiza el nivel en la pantalla
+        actualizarNivel();
     }, 2000); // Espera de 2 segundos antes de comenzar con los ítems
 }
 
@@ -237,11 +241,36 @@ function togglePausa() {
             const animaciones = item.getAnimations();
             animaciones.forEach((animacion) => animacion.pause());
         });
+        clearInterval(itemInterval);
     } else {
         items.forEach((item) => {
             const animaciones = item.getAnimations();
             animaciones.forEach((animacion) => animacion.play());
         });
+
+        // Ajusta el intervalo para continuar mostrando ítems desde donde se detuvo
+        clearInterval(itemInterval);
+        const itemsRestantes = seleccionarItems().slice(contadorItems);
+        itemInterval = setInterval(() => {
+            mostrarItem(itemsRestantes.shift());
+            contadorItems++;
+
+            // Verifica si se han mostrado todos los ítems
+            if (contadorItems >= seleccionarItems().length) {
+                clearInterval(itemInterval);
+
+                // Espera a que todos los ítems hayan terminado de moverse
+                setTimeout(() => {
+                    // Verifica si se debe avanzar al siguiente nivel
+                    if (puntuacion >= 25) {
+                        nivel++;
+                    }
+
+                    // Comienza el siguiente nivel
+                    comenzarNivel();
+                }, 10000);
+            }
+        }, 1000);
     }
 }
 

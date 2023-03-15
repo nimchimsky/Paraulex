@@ -1,128 +1,250 @@
-document.addEventListener("DOMContentLoaded", function() {
+// Variables globales
+let nivel = 1;
+let puntuacion = 0;
+let palabras = [];
+let pseudopalabras = [];
 
-var score = 0;
-var scoreboard = document.createElement('div');
-scoreboard.id = 'scoreboard';
-scoreboard.innerHTML = 'Score: ' + score;
-document.body.appendChild(scoreboard);
+// Función para cargar palabras y pseudopalabras de los archivos JSON
+function cargarItems() {
+    return new Promise((resolve) => {
+        // Carga palabras.json
+        fetch("words.json")
+            .then((response) => response.json())
+            .then((data) => {
+                palabras = data;
+                // Carga pseudo.json
+                fetch("pseudo.json")
+                    .then((response) => response.json())
+                    .then((data) => {
+                        pseudopalabras = data;
+                        resolve(); // Resuelve la promesa
+                    })
+                    .catch((error) => console.error("Error al cargar pseudo.json:", error));
+            })
+            .catch((error) => console.error("Error al cargar words.json:", error));
+    });
+}
+// Función para seleccionar 50 ítems al azar y mezclarlos
+function seleccionarItems() {
+    // Filtra las palabras y pseudopalabras según el nivel
+    const palabrasNivel = palabras.filter((item) => item.L === nivel);
+    const pseudopalabrasNivel = pseudopalabras.filter((item) => item.L === nivel);
 
-var text = document.createElement('div');
-text.innerHTML = "El lèxic català està en perill! Les paraules de la llengua s'han barrejat amb un munt de paraules que no existeixen, paraules amb faltes d'ortografia i barbarismes.<br>Formes part d'un equip de valents disposats a refer el diccionari de la llengua.<br>Podràs identificar correctament totes les <b>paraules infiltrades</b>?";
-text.style.position = 'absolute';
-text.style.top = '40%';
-text.style.transform = 'translateY(-150%)';
-text.style.textAlign = 'center';
-text.style.fontSize = '24px';
-text.style.width = '100%';
-document.body.appendChild(text);
+    // Selecciona 25 palabras y 25 pseudopalabras al azar
+    const palabrasSeleccionadas = seleccionarAleatoriamente(palabrasNivel, 25);
+    const pseudopalabrasSeleccionadas = seleccionarAleatoriamente(pseudopalabrasNivel, 25);
 
-var correctItems = ['vial', 'inspirador', 'removedor', 'cigronera', 'alarma', 'mamada', 'cros', 'acompanyada', 'malagraït', 'enlairat', 'magnètic', 'emmandriment', 'satisfacció', 'pèl', 'quaternari', 'consulta', 'disculpar', 'febrilment', 'pioca', 'malvapoma', 'tornassol', 'revetlla', 'callol', 'obnubilar', 'substanciar', 'bel·líger', 'autarquia', 'saguer', 'presoner', 'tómbola', 'malgastar', 'amplament', 'antiàcid', 'dissenyar', 'albercoc', 'veneçolà', 'catxaruta', 'reforçament', 'poema', 'porció', 'catre', 'inconnex', 'viscositat', 'requesta', 'anàrquic', 'renòs', 'dogmatisme', 'arcàdic', 'maternitat', 'trapezial'];
-var incorrectItems = ['poenati', 'ogrenar', 'pregler', 'coscadra', 'llavot', 'carriltrí', 'estaiàsant', 'bipot', 'francessí', 'enpetai', 'ingrinvigue', 'botonobia', 'revollac', 'estaiàmir', 'milebre', 'regoixà', 'regra', 'mecaterbar', 'relipedadeu', 'rorta', 'calentar', 'palomitas', 'munyeca', 'apresar', 'cierre', 'parrilla', 'taburet', 'inscribir', 'sabiondo', 'xumbera', 'rompeolas', 'jinete', 'empenyar', 'rehén', 'pulgada', 'radiofonic', 'célebrement', 'sobergüeria', 'güerxa', 'cagüerri', 'cadenciòs', 'mitjò', 'encorvar', 'esquíbol', 'traba', 'galamo', 'intercesió', 'bosada', 'reçorgir', 'suspensiò'];
+    // Combina y mezcla las palabras y pseudopalabras
+    const items = mezclarArrays(palabrasSeleccionadas, pseudopalabrasSeleccionadas);
 
-// Shuffle both lists separately
-correctItems.sort(function() { return 0.5 - Math.random() });
-incorrectItems.sort(function() { return 0.5 - Math.random() });
+    return items;
+}
 
-// Merge shuffled lists with 1 to 3 items from each list consecutively
-var items = [];
-var i = 0;
-var j = 0;
-	while (i < correctItems.length && j < incorrectItems.length) {
-	  var numCorrectItems = Math.floor(Math.random() * 3) + 1; // Randomly select 1 to 3 correct items
-	  for (var k = 0; k < numCorrectItems && i < correctItems.length; k++) {
-		items.push(correctItems[i]);
-		i++;
-	  }
-	  var numIncorrectItems = Math.floor(Math.random() * 3) + 1; // Randomly select 1 to 3 incorrect items
-	  var fadeOutDuration = 1000;
-	  for (var k = 0; k < numIncorrectItems && j < incorrectItems.length; k++) {
-		items.push(incorrectItems[j]);
-		j++;
-	  }
-	}
-	while (i < correctItems.length) {
-	  items.push(correctItems[i]);
-	  i++;
-	}
-	while (j < incorrectItems.length) {
-	  items.push(incorrectItems[j]);
-	  j++;
-	}
-items = items.slice(0, 20); // Select only 20 items from the shuffled list
-  
-  var playButton = document.createElement('button');
-  playButton.innerHTML = 'Play';
-  playButton.classList.add('play-button');
-  
-  playButton.onclick = function() {
-  	document.body.removeChild(text);
-	this.remove(); // Remove the Play button
-    var i = 0;
-    var lastItem = null;
-    var interval = setInterval(function() {
-      if (i < items.length) {
-        var item = document.createElement('div');
-		item.isClicked = false; 
-        item.innerHTML = items[i];
-        item.style.position = 'absolute';
-        item.style.top = '0px';
-        item.style.left = Math.random() * (window.innerWidth / 2) + (window.innerWidth / 4) - (item.offsetWidth / 2) + 'px';
-        item.style.fontSize = '50px';
-        item.style.color = '#000000';
-        item.style.backgroundColor = '#add8e6';
-        item.style.padding = '10px';
-        item.style.borderRadius = '10px';
-        item.style.cursor = 'pointer';
-		item.timeout = setTimeout(function() {
-	  if (!item.isClicked) {
-		if (correctItems.includes(item.innerHTML)) {
-		  score += 1;
+function seleccionarAleatoriamente(arr, n) {
+    const resultado = [];
+    for (let i = 0; i < n; i++) {
+        const index = Math.floor(Math.random() * arr.length);
+        resultado.push(arr[index]);
+        arr.splice(index, 1);
+    }
+    return resultado;
+}
+
+function mezclarArrays(arr1, arr2) {
+    let resultado = [];
+    while (arr1.length > 0 || arr2.length > 0) {
+        if (arr1.length > 0) {
+            resultado.push(arr1.shift());
+        }
+        if (arr2.length > 0) {
+            resultado.push(arr2.shift());
+        }
+    }
+    return resultado;
+}
+
+// Función para crear y mostrar un ítem en la zona de juego
+function mostrarItem(item) {
+    // Crea un elemento div para el ítem
+    const itemDiv = document.createElement("div");
+    itemDiv.classList.add("item");
+    itemDiv.innerText = item.W;
+
+    // Añade el ítem al DOM en la zona de juego
+    const zonaDeJuego = document.querySelector(".game-area");
+    zonaDeJuego.appendChild(itemDiv);
+
+    // Establece la posición horizontal al azar
+    const anchuraZonaDeJuego = zonaDeJuego.clientWidth;
+    const anchuraItem = itemDiv.getBoundingClientRect().width;
+    const posicionX = Math.floor(Math.random() * (anchuraZonaDeJuego - anchuraItem));
+    itemDiv.style.left = `${posicionX}px`;
+
+    // Establece la posición vertical inicial
+    itemDiv.style.top = "0px";
+    
+    // Agrega posición absoluta al ítem
+    itemDiv.style.position = "absolute";
+
+  // Anima el ítem hacia abajo
+    const distancia = zonaDeJuego.clientHeight - itemDiv.clientHeight;
+    const duracion = 10; // 10 segundos
+    const animation = itemDiv.animate([{ top: "0px" }, { top: `${distancia}px` }], {
+        duration: duracion * 1000,
+        easing: "linear",
+    });
+	
+	function esPalabra(item) {
+		return palabras.some((palabra) => palabra.W === item.W);
+}
+	// Evento de finalización de animación
+	animation.onfinish = () => {
+		// Comprueba si el ítem llegó al final sin ser clicado y actualiza la puntuación
+		if (!itemDiv.classList.contains("correct") && !itemDiv.classList.contains("incorrect")) {
+			if (esPalabra(item)) {
+				puntuacion--; // Resta un punto si es una palabra
 			} else {
-			score -= 1;
+				puntuacion++; // Suma un punto si es una pseudopalabra
 			}
-			scoreboard.innerHTML = 'Score: ' + score;
-			}
-			if (document.body.contains(item)) {
-				document.body.removeChild(item);
-				}
-			}, 9000);
-	item.onclick = function() {
-		item.isClicked = true;
-		clearTimeout(item.timeout);
-		if (correctItems.includes(item.innerHTML)) {
-			score -= 1;
-			item.classList.add('correct-click');
-		} else {
-			score += 1;
-			item.classList.add('incorrect-click');
+			actualizarPuntuacion();
 		}
-		if (document.body.contains(item)) {
-			setTimeout(function() {
-				document.body.removeChild(item);
-			}, 1000); // Wait for animation to finish before removing item
-		}
-		scoreboard.innerHTML = 'Score: ' + score;
+
+		itemDiv.remove();
 	};
-        document.body.appendChild(item);
-        var top = 0;
-        var interval2 = setInterval(function() {
-          if (top < window.innerHeight) {
-            top += 1;
-            item.style.top = top + 'px';
-          } else {
-			if (document.body.contains(item)) {
-				document.body.removeChild(item);
-				}
-            clearInterval(interval2);
-          }
-        }, 10);
-        lastItem = item;
-        i++;
-      } else if (lastItem !== null && parseInt(lastItem.style.top, 10) >= window.innerHeight) {
-		  clearInterval(interval);
-		document.body.appendChild(playButton);
-		}
-    }, 1000);
-  };
-  document.body.appendChild(playButton);
+
+    // Establece el atributo 'clicked' del dataset en 'false'
+    itemDiv.dataset.clicked = 'false';
+	
+    // Evento de clic
+    itemDiv.addEventListener("click", () => {
+        // Verifica si el ítem ya ha sido clicado
+        if (itemDiv.dataset.clicked === 'true') {
+            return; // Si el ítem ya ha sido clicado, no hacer nada
+        }
+
+        // Establece el atributo 'clicked' del dataset en 'true'
+        itemDiv.dataset.clicked = 'true';
+		
+        // Comprueba si la respuesta es correcta
+        const esCorrecta = palabras.some((palabra) => palabra.W === item.W);
+
+        // Actualiza la puntuación y muestra el resultado
+        if (esCorrecta) {
+            puntuacion++;
+            itemDiv.classList.add("correct");
+        } else {
+            puntuacion--;
+            itemDiv.classList.add("incorrect");
+        }
+        actualizarPuntuacion();
+
+        // Elimina el ítem después de 1 segundo
+        setTimeout(() => {
+            itemDiv.remove();
+        }, 1000);
+    });
+}
+
+function actualizarPuntuacion() {
+    const puntuacionElement = document.querySelector("#score-value");
+    puntuacionElement.innerText = puntuacion;
+}
+
+function actualizarNivel() {
+    const nivelElement = document.querySelector("#level-value");
+    nivelElement.innerText = nivel;
+}
+
+// Función para iniciar el juego
+function iniciarJuego() {
+    // Carga las palabras y pseudopalabras de los archivos JSON
+    cargarItems().then(() => {
+        // Inicializa el nivel y la puntuación
+        nivel = 1;
+        puntuacion = 0;
+        actualizarPuntuacion();
+	
+        // Comienza el nivel
+        comenzarNivel();
+    });
+}
+
+function mostrarMensajeNivel() {
+    const mensajeNivel = document.createElement("div");
+    mensajeNivel.classList.add("mensaje-nivel");
+    mensajeNivel.innerText = `NIVELL ${nivel}`;
+    
+    const gameArea = document.querySelector(".game-area");
+    gameArea.appendChild(mensajeNivel);
+    
+    // Centrar el mensaje en el área del juego
+    mensajeNivel.style.position = "absolute";
+    mensajeNivel.style.top = "50%";
+    mensajeNivel.style.left = "50%";
+    mensajeNivel.style.transform = "translate(-50%, -50%)";
+
+    // Estilos del mensaje (puedes mover esto al archivo CSS si prefieres)
+    mensajeNivel.style.fontSize = "2rem";
+    mensajeNivel.style.fontWeight = "bold";
+    mensajeNivel.style.color = "#2196F3";
+    mensajeNivel.style.textShadow = "2px 2px 4px rgba(0, 0, 0, 0.5)";
+    
+    return mensajeNivel;
+}
+
+function comenzarNivel() {
+    // Muestra el mensaje del nivel actual
+    const mensajeNivel = mostrarMensajeNivel();
+
+    // Espera 2 segundos antes de continuar con los ítems
+    setTimeout(() => {
+        // Elimina el mensaje del nivel
+        mensajeNivel.remove();
+
+        // Selecciona y mezcla los ítems para el nivel actual
+        const items = seleccionarItems();
+
+        // Muestra los ítems en la pantalla con un intervalo de 1 segundo
+        let contadorItems = 0;
+        const intervaloItems = setInterval(() => {
+            mostrarItem(items[contadorItems]);
+            contadorItems++;
+
+            // Verifica si se han mostrado todos los ítems
+            if (contadorItems >= items.length) {
+                clearInterval(intervaloItems);
+
+                // Espera a que todos los ítems hayan terminado de moverse
+                setTimeout(() => {
+                    // Verifica si se debe avanzar al siguiente nivel
+                    if (puntuacion >= 25) {
+                        nivel++;
+                    }
+
+                    // Comienza el siguiente nivel
+                    comenzarNivel();
+                }, 10000); // Espera 10 segundos, que es el tiempo que tardan los ítems en llegar al final
+            }
+        }, 1000); // Intervalo de 1 segundo entre ítems
+		 // Actualiza el nivel en la pantalla
+		actualizarNivel();
+    }, 2000); // Espera de 2 segundos antes de comenzar con los ítems
+}
+
+ // Actualiza el nivel en la pantalla
+    actualizarNivel();
+
+
+// Escucha el evento de clic en el botón de inicio
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelector(".boton-comenzar").addEventListener("click", () => {
+    // Oculta las instrucciones y el botón de inicio
+    document.querySelector(".instrucciones").style.display = "none";
+    
+    // Muestra el juego
+    document.querySelector(".game").style.display = "flex";
+
+    // Inicia el juego
+    iniciarJuego();
+  });
 });

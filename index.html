@@ -1,11 +1,28 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ca">
 <head>
     <meta charset="UTF-8">
-    <title>Playful Game</title>
-    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Joc de paraules en català</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="script.js" defer></script>
 </head>
 <body>
-    <script src="script.js"></script>
+    <div class="container">
+        <div class="instrucciones">
+            <h1>Identifica les paraules del diccionari</h1>
+            <button class="boton-comenzar">COMENÇAR</button>
+        </div>
+        <div class="game" style="display: none;">
+            <div class="header">
+                <span class="level">Nivell: <span id="level-value">1</span></span>
+                <span class="score">Puntuació: <span id="score-value">0</span></span>
+            </div>
+            <div class="game-area">
+                <!-- Los ítems aparecerán aquí -->
+            </div>
+            <div class="footer"></div>
+        </div>
+    </div>
 </body>
 </html>

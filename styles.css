@@ -50,8 +50,8 @@ button:hover {
     padding: 5px;
     display: flex;
     justify-content: space-between;
-    font-size: 1rem;
-    height: 30px; /* Establece una altura fija para el encabezado */
+    font-size: 2rem;
+    height: 35px; /* Establece una altura fija para el encabezado */
     flex-shrink: 0;
 }
 
@@ -63,7 +63,10 @@ button:hover {
 }
 
 .footer {
-    height: 12.5%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+	height: 12.5%;
     background-color: #d3d3d3;
     flex-shrink: 0;
 }
@@ -75,7 +78,7 @@ button:hover {
     color: white;
     border-radius: 5px;
     user-select: none;
-    font-size: 1rem;
+    font-size: 1.5rem;
 }
 
 .item.correct {
@@ -86,6 +89,32 @@ button:hover {
 .item.incorrect {
     background-color: #F44336;
     animation: fadeOut 1s forwards;
+}
+
+.boton-pausa {
+    background-color: #FFC107;
+    color: white;
+    padding: 10px 20px;
+    margin: 10px 0;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.boton-pausa:hover {
+    background-color: #FFA000;
+}
+
+.mensajenivel {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 2rem;
+    font-weight: bold;
+    color: #2196F3;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 @keyframes fadeOut {

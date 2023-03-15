@@ -3,6 +3,7 @@ let nivel = 1;
 let puntuacion = 0;
 let palabras = [];
 let pseudopalabras = [];
+let pausado = false;
 
 // Función para cargar palabras y pseudopalabras de los archivos JSON
 function cargarItems() {
@@ -83,16 +84,18 @@ function mostrarItem(item) {
     // Establece la posición vertical inicial
     itemDiv.style.top = "0px";
     
-    // Agrega posición absoluta al ítem
-    itemDiv.style.position = "absolute";
+	// Anima el ítem hacia abajo
+	const distancia = zonaDeJuego.clientHeight - itemDiv.clientHeight;
+	const duracion = 10; // 10 segundos
+	const animation = itemDiv.animate([{ top: "0px" }, { top: `${distancia}px` }], {
+		duration: duracion * 1000,
+		easing: "linear",
+	});
 
-  // Anima el ítem hacia abajo
-    const distancia = zonaDeJuego.clientHeight - itemDiv.clientHeight;
-    const duracion = 10; // 10 segundos
-    const animation = itemDiv.animate([{ top: "0px" }, { top: `${distancia}px` }], {
-        duration: duracion * 1000,
-        easing: "linear",
-    });
+	// Inicia en pausa si el estado de pausa es verdadero
+	if (pausado) {
+		animation.pause();
+	}
 	
 	function esPalabra(item) {
 		return palabras.some((palabra) => palabra.W === item.W);
@@ -171,23 +174,11 @@ function iniciarJuego() {
 
 function mostrarMensajeNivel() {
     const mensajeNivel = document.createElement("div");
-    mensajeNivel.classList.add("mensaje-nivel");
+    mensajeNivel.classList.add("mensajenivel");
     mensajeNivel.innerText = `NIVELL ${nivel}`;
     
     const gameArea = document.querySelector(".game-area");
     gameArea.appendChild(mensajeNivel);
-    
-    // Centrar el mensaje en el área del juego
-    mensajeNivel.style.position = "absolute";
-    mensajeNivel.style.top = "50%";
-    mensajeNivel.style.left = "50%";
-    mensajeNivel.style.transform = "translate(-50%, -50%)";
-
-    // Estilos del mensaje (puedes mover esto al archivo CSS si prefieres)
-    mensajeNivel.style.fontSize = "2rem";
-    mensajeNivel.style.fontWeight = "bold";
-    mensajeNivel.style.color = "#2196F3";
-    mensajeNivel.style.textShadow = "2px 2px 4px rgba(0, 0, 0, 0.5)";
     
     return mensajeNivel;
 }
@@ -234,6 +225,25 @@ function comenzarNivel() {
  // Actualiza el nivel en la pantalla
     actualizarNivel();
 
+// Función para pausar o reanudar el juego
+function togglePausa() {
+    pausado = !pausado;
+
+    const zonaDeJuego = document.querySelector(".game-area");
+    const items = zonaDeJuego.querySelectorAll(".item");
+
+    if (pausado) {
+        items.forEach((item) => {
+            const animaciones = item.getAnimations();
+            animaciones.forEach((animacion) => animacion.pause());
+        });
+    } else {
+        items.forEach((item) => {
+            const animaciones = item.getAnimations();
+            animaciones.forEach((animacion) => animacion.play());
+        });
+    }
+}
 
 // Escucha el evento de clic en el botón de inicio
 document.addEventListener("DOMContentLoaded", () => {
@@ -247,4 +257,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Inicia el juego
     iniciarJuego();
   });
+  
+  // Evento de clic en el botón de pausa
+  document.querySelector(".boton-pausa").addEventListener("click", togglePausa);
 });

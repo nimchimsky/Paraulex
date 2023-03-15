@@ -150,6 +150,34 @@ function mostrarItem(item) {
     });
 }
 
+function checkItemsCrossingLine() {
+    const gameArea = document.querySelector(".game-area");
+    const items = gameArea.querySelectorAll(".item");
+    const redLine = document.querySelector(".red-line");
+    const redLineY = redLine.getBoundingClientRect().top;
+
+    items.forEach((item) => {
+        if (item.dataset.clicked === "true") {
+            return;
+        }
+
+        const itemY = item.getBoundingClientRect().bottom;
+
+        if (itemY >= redLineY) {
+            const esCorrecta = palabras.some((palabra) => palabra.W === item.innerText);
+
+            if (esCorrecta) {
+                item.classList.add("incorrect");
+            } else {
+                item.classList.add("correct");
+            }
+
+            // Establece el atributo 'clicked' del dataset en 'true'
+            item.dataset.clicked = "true";
+        }
+    });
+}
+
 function actualizarPuntuacion() {
     const puntuacionElement = document.querySelector("#score-value");
     puntuacionElement.innerText = puntuacion;
@@ -290,3 +318,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // Evento de clic en el botón de pausa
   document.querySelector(".boton-pausa").addEventListener("click", togglePausa);
 });
+
+// Llama a checkItemsCrossingLine cada 100 ms
+setInterval(checkItemsCrossingLine, 100);

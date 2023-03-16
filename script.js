@@ -58,6 +58,28 @@ function mezclarArrays(arr1, arr2) {
     return resultado;
 }
 
+function verificarFinalizacionAnimacion(itemDiv, item, animation) {
+    const interval = setInterval(() => {
+        if (animation.playState === "finished") {
+            if (!itemDiv.classList.contains("correct") && !itemDiv.classList.contains("incorrect")) {
+                if (esPalabra(item)) {
+                    puntuacion--; // Resta un punto si es una palabra
+                } else {
+                    puntuacion++; // Suma un punto si es una pseudopalabra
+                }
+                actualizarPuntuacion();
+            }
+
+            itemDiv.remove();
+            clearInterval(interval);
+        }
+    }, 100);
+}
+
+function esPalabra(item) {
+    return palabras.some((palabra) => palabra.W === item.W);
+}
+
 // Función para crear y mostrar un ítem en la zona de juego
 function mostrarItem(item) {
     // Crea un elemento div para el ítem
@@ -78,6 +100,9 @@ function mostrarItem(item) {
     // Establece la posición vertical inicial
     itemDiv.style.top = "0px";
     
+	// Verifica si el ítem cruza la línea roja y cambia su estilo en consecuencia
+	verificarCruceLineaRoja(itemDiv, item);	
+	
 	// Anima el ítem hacia abajo
 	const distancia = zonaDeJuego.clientHeight - itemDiv.clientHeight;
 	const duracion = 15; // 15 segundos
@@ -91,23 +116,12 @@ function mostrarItem(item) {
 		animation.pause();
 	}
 	
+	// Verifica la finalización de la animación y actualiza la puntuación
+	verificarFinalizacionAnimacion(itemDiv, item, animation);
+	
 	function esPalabra(item) {
 		return palabras.some((palabra) => palabra.W === item.W);
 }
-	// Evento de finalización de animación
-	animation.onfinish = () => {
-		// Comprueba si el ítem llegó al final sin ser clicado y actualiza la puntuación
-		if (!itemDiv.classList.contains("correct") && !itemDiv.classList.contains("incorrect")) {
-			if (esPalabra(item)) {
-				puntuacion--; // Resta un punto si es una palabra
-			} else {
-				puntuacion++; // Suma un punto si es una pseudopalabra
-			}
-			actualizarPuntuacion();
-		}
-
-		itemDiv.remove();
-	};
 
     // Establece el atributo 'clicked' del dataset en 'false'
     itemDiv.dataset.clicked = 'false';
@@ -118,6 +132,15 @@ function mostrarItem(item) {
         if (itemDiv.dataset.clicked === 'true') {
             return; // Si el ítem ya ha sido clicado, no hacer nada
         }
+
+		// Verifica si el ítem ha cruzado completamente la línea roja
+		const redLine = document.querySelector(".red-line");
+		const redLineY = redLine.getBoundingClientRect().top;
+		const itemY = itemDiv.getBoundingClientRect().bottom;
+
+		if (itemY >= redLineY) {
+			return; // Si el ítem ha cruzado la línea roja, no hacer nada
+		}
 
         // Establece el atributo 'clicked' del dataset en 'true'
         itemDiv.dataset.clicked = 'true';
@@ -139,34 +162,6 @@ function mostrarItem(item) {
         setTimeout(() => {
             itemDiv.remove();
         }, 1000);
-    });
-}
-
-function checkItemsCrossingLine() {
-    const gameArea = document.querySelector(".game-area");
-    const items = gameArea.querySelectorAll(".item");
-    const redLine = document.querySelector(".red-line");
-    const redLineY = redLine.getBoundingClientRect().top;
-
-    items.forEach((item) => {
-        if (item.dataset.clicked === "true") {
-            return;
-        }
-
-        const itemY = item.getBoundingClientRect().bottom;
-
-        if (itemY >= redLineY) {
-            const esCorrecta = palabras.some((palabra) => palabra.W === item.innerText);
-
-            if (esCorrecta) {
-                item.classList.add("incorrect");
-            } else {
-                item.classList.add("correct");
-            }
-
-            // Establece el atributo 'clicked' del dataset en 'true'
-            item.dataset.clicked = "true";
-        }
     });
 }
 
@@ -238,7 +233,7 @@ function comenzarNivel() {
 
                     // Comienza el siguiente nivel
                     comenzarNivel();
-                }, 15000); // Espera 15 segundos, que es el tiempo que tardan los ítems en llegar al final
+                }, 15000); // Espera 10 segundos, que es el tiempo que tardan los ítems en llegar al final
             }
         }, 1250); // Intervalo de 1 segundo entre ítems
         // Actualiza el nivel en la pantalla
@@ -248,6 +243,27 @@ function comenzarNivel() {
 
  // Actualiza el nivel en la pantalla
     actualizarNivel();
+
+function verificarCruceLineaRoja(itemDiv, item) {
+    const redLine = document.querySelector(".red-line");
+    const redLineY = redLine.getBoundingClientRect().top;
+    const itemY = itemDiv.getBoundingClientRect().bottom;
+
+    if (itemY >= redLineY && itemDiv.dataset.clicked === 'false') {
+        const esPalabra = palabras.some((palabra) => palabra.W === item.W);
+        if (esPalabra) {
+            itemDiv.classList.add("incorrect");
+            puntuacion--; // Resta un punto si es una palabra
+        } else {
+            itemDiv.classList.add("correct");
+            puntuacion++; // Suma un punto si es una pseudopalabra
+        }
+        // Llama a actualizarPuntuacion aquí
+        actualizarPuntuacion();
+    } else if (!itemDiv.classList.contains("correct") && !itemDiv.classList.contains("incorrect")) {
+        requestAnimationFrame(() => verificarCruceLineaRoja(itemDiv, item));
+    }
+}
 
 // Función para pausar o reanudar el juego
 function togglePausa() {
@@ -313,6 +329,3 @@ document.addEventListener("DOMContentLoaded", () => {
   // Evento de clic en el botón de pausa
   document.querySelector(".boton-pausa").addEventListener("click", togglePausa);
 });
-
-// Llama a checkItemsCrossingLine cada 100 ms
-setInterval(checkItemsCrossingLine, 100);

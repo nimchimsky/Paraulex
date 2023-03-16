@@ -63,9 +63,9 @@ function verificarFinalizacionAnimacion(itemDiv, item, animation) {
         if (animation.playState === "finished") {
             if (!itemDiv.classList.contains("correct") && !itemDiv.classList.contains("incorrect")) {
                 if (esPalabra(item)) {
-                    puntuacion--; // Resta un punto si es una palabra
+                    modificarPuntuacion(-1); // Resta tantos puntos como el nivel actual si es una palabra
                 } else {
-                    puntuacion++; // Suma un punto si es una pseudopalabra
+                    modificarPuntuacion(+1); // Suma tantos puntos como el nivel actual si es una pseudopalabra
                 }
                 actualizarPuntuacion();
             }
@@ -74,6 +74,11 @@ function verificarFinalizacionAnimacion(itemDiv, item, animation) {
             clearInterval(interval);
         }
     }, 100);
+}
+
+function modificarPuntuacion(puntos) {
+    puntuacion += puntos * nivel;
+    actualizarPuntuacion();
 }
 
 function esPalabra(item) {
@@ -150,10 +155,10 @@ function mostrarItem(item) {
 
         // Actualiza la puntuación y muestra el resultado
         if (esCorrecta) {
-            puntuacion++;
+            modificarPuntuacion(+1);
             itemDiv.classList.add("correct");
         } else {
-            puntuacion--;
+            modificarPuntuacion(-1);
             itemDiv.classList.add("incorrect");
         }
         actualizarPuntuacion();
@@ -253,10 +258,10 @@ function verificarCruceLineaRoja(itemDiv, item) {
         const esPalabra = palabras.some((palabra) => palabra.W === item.W);
         if (esPalabra) {
             itemDiv.classList.add("incorrect");
-            puntuacion--; // Resta un punto si es una palabra
+            modificarPuntuacion(-1); // Resta puntos en función del nivel
         } else {
             itemDiv.classList.add("correct");
-            puntuacion++; // Suma un punto si es una pseudopalabra
+            modificarPuntuacion(+1); // Suma puntos en función del nivel
         }
         // Llama a actualizarPuntuacion aquí
         actualizarPuntuacion();

@@ -50,8 +50,8 @@ button:hover {
     padding: 5px;
     display: flex;
     justify-content: space-between;
-    font-size: 1.5rem;
-    height: 40px; /* Establece una altura fija para el encabezado */
+    font-size: 1.25rem;
+    height: 50px; /* Establece una altura fija para el encabezado */
     flex-shrink: 0;
 	align-items: center;
 }
@@ -85,13 +85,13 @@ button:hover {
 
 .boton-pausa {
     background-color: #FFC107;
-    color: white;
+    color: black;
     padding: 10px 20px;
     margin: 10px 0;
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    font-size: 1rem;
+    font-size: 1.25rem;
 }
 
 .boton-pausa:hover {

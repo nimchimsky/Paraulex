@@ -51,7 +51,7 @@ button:hover {
     display: flex;
     justify-content: space-between;
     font-size: 1.5rem;
-    height: 35px; /* Establece una altura fija para el encabezado */
+    height: 40px; /* Establece una altura fija para el encabezado */
     flex-shrink: 0;
 	align-items: center;
 }
@@ -98,9 +98,25 @@ button:hover {
     background-color: #FFA000;
 }
 
+.pantalla-pausa {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 3rem;
+    font-weight: bold;
+    color: #2196F3;
+    z-index: 100;
+}
+
 .mensajenivel {
     position: absolute;
-    top: 50%;
+    top: 40%;
     left: 50%;
     transform: translate(-50%, -50%);
     font-size: 2rem;

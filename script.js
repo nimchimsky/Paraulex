@@ -54,15 +54,7 @@ function seleccionarAleatoriamente(arr, n) {
 }
 
 function mezclarArrays(arr1, arr2) {
-    let resultado = [];
-    while (arr1.length > 0 || arr2.length > 0) {
-        if (arr1.length > 0) {
-            resultado.push(arr1.shift());
-        }
-        if (arr2.length > 0) {
-            resultado.push(arr2.shift());
-        }
-    }
+    const resultado = seleccionarAleatoriamente([...arr1, ...arr2], arr1.length + arr2.length);
     return resultado;
 }
 
@@ -88,7 +80,7 @@ function mostrarItem(item) {
     
 	// Anima el ítem hacia abajo
 	const distancia = zonaDeJuego.clientHeight - itemDiv.clientHeight;
-	const duracion = 10; // 10 segundos
+	const duracion = 15; // 15 segundos
 	const animation = itemDiv.animate([{ top: "0px" }, { top: `${distancia}px` }], {
 		duration: duracion * 1000,
 		easing: "linear",
@@ -246,9 +238,9 @@ function comenzarNivel() {
 
                     // Comienza el siguiente nivel
                     comenzarNivel();
-                }, 10000); // Espera 10 segundos, que es el tiempo que tardan los ítems en llegar al final
+                }, 15000); // Espera 15 segundos, que es el tiempo que tardan los ítems en llegar al final
             }
-        }, 1000); // Intervalo de 1 segundo entre ítems
+        }, 1250); // Intervalo de 1 segundo entre ítems
         // Actualiza el nivel en la pantalla
         actualizarNivel();
     }, 2000); // Espera de 2 segundos antes de comenzar con los ítems
@@ -260,6 +252,9 @@ function comenzarNivel() {
 // Función para pausar o reanudar el juego
 function togglePausa() {
     pausado = !pausado;
+
+    const pantallaPausa = document.querySelector(".pantalla-pausa");
+    pantallaPausa.style.display = pausado ? "flex" : "none";
 
     const zonaDeJuego = document.querySelector(".game-area");
     const items = zonaDeJuego.querySelectorAll(".item");

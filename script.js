@@ -177,11 +177,12 @@ function actualizarNivel() {
 }
 
 // Función para iniciar el juego
-function iniciarJuego() {
-    // Carga las palabras y pseudopalabras de los archivos JSON
+function iniciarJuego(nivelInicial = 1) {
+    reiniciarAciertos();
+	// Carga las palabras y pseudopalabras de los archivos JSON
     cargarItems().then(() => {
         // Inicializa el nivel y la puntuación
-        nivel = 1;
+        nivel = nivelInicial;
         puntuacion = 0;
         actualizarPuntuacion();
 	
@@ -203,7 +204,8 @@ function mostrarMensajeNivel() {
 
 // Comienza el nivel
 function comenzarNivel() {
-    // Muestra el mensaje del nivel actual
+     reiniciarAciertos();
+	// Muestra el mensaje del nivel actual
     const mensajeNivel = mostrarMensajeNivel();
 
     // Espera 2 segundos antes de continuar con los ítems
@@ -245,6 +247,10 @@ function comenzarNivel() {
 
  // Actualiza el nivel en la pantalla
     actualizarNivel();
+
+function reiniciarAciertos() {
+  aciertos = 0;
+}
 
 function verificarCruceLineaRoja(e, a) {
     let t = document.querySelector(".red-line"),
@@ -353,6 +359,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Inicia el juego
     iniciarJuego();
+  });
+  
+  document.querySelectorAll(".boton-nivel").forEach((boton) => {
+    boton.addEventListener("click", () => {
+      const nivelElegido = parseInt(boton.dataset.level, 10);
+	  document.querySelector(".instrucciones").style.display = "none";
+	  document.querySelector(".game").style.display = "flex";
+      iniciarJuego(nivelElegido);
+    });
   });
   
   // Evento de clic en el botón de pausa

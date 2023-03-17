@@ -6,27 +6,20 @@ let pseudopalabras = [];
 let pausado = false;
 let itemInterval;
 let contadorItems = 0;
+let aciertos = 0;
 
 // Función para cargar palabras y pseudopalabras de los archivos JSON
-function cargarItems() {
-    return new Promise((resolve) => {
-        // Carga palabras.json
-        fetch("words.json")
-            .then((response) => response.json())
-            .then((data) => {
-                palabras = data;
-                // Carga pseudo.json
-                fetch("pseudo.json")
-                    .then((response) => response.json())
-                    .then((data) => {
-                        pseudopalabras = data;
-                        resolve(); // Resuelve la promesa
-                    })
-                    .catch((error) => console.error("Error al cargar pseudo.json:", error));
-            })
-            .catch((error) => console.error("Error al cargar words.json:", error));
-    });
+async function cargarItems() {
+  try {
+    const palabrasResponse = await fetch("words.json");
+    palabras = await palabrasResponse.json();
+    const pseudopalabrasResponse = await fetch("pseudo.json");
+    pseudopalabras = await pseudopalabrasResponse.json();
+  } catch (error) {
+    console.error("Error al cargar los archivos JSON:", error);
+  }
 }
+
 // Función para seleccionar 50 ítems al azar y mezclarlos
 function seleccionarItems() {
     // Filtra las palabras y pseudopalabras según el nivel
@@ -76,9 +69,12 @@ function verificarFinalizacionAnimacion(itemDiv, item, animation) {
     }, 100);
 }
 
-function modificarPuntuacion(puntos) {
-    puntuacion += puntos * nivel;
-    actualizarPuntuacion();
+function modificarPuntuacion(e) {
+  if (e > 0) {
+    aciertos++;
+  }
+  puntuacion += e * nivel;
+  actualizarPuntuacion();
 }
 
 function esPalabra(item) {
@@ -90,7 +86,7 @@ function mostrarItem(item) {
     // Crea un elemento div para el ítem
     const itemDiv = document.createElement("div");
     itemDiv.classList.add("item");
-    itemDiv.innerText = item.W;
+    itemDiv.textContent = item.W;
 
     // Añade el ítem al DOM en la zona de juego
     const zonaDeJuego = document.querySelector(".game-area");
@@ -172,12 +168,12 @@ function mostrarItem(item) {
 
 function actualizarPuntuacion() {
     const puntuacionElement = document.querySelector("#score-value");
-    puntuacionElement.innerText = puntuacion;
+    puntuacionElement.textContent = puntuacion;
 }
 
 function actualizarNivel() {
     const nivelElement = document.querySelector("#level-value");
-    nivelElement.innerText = nivel;
+    nivelElement.textContent = nivel;
 }
 
 // Función para iniciar el juego
@@ -197,7 +193,7 @@ function iniciarJuego() {
 function mostrarMensajeNivel() {
     const mensajeNivel = document.createElement("div");
     mensajeNivel.classList.add("mensajenivel");
-    mensajeNivel.innerText = `NIVELL ${nivel}`;
+    mensajeNivel.textContent = `NIVELL ${nivel}`;
     
     const gameArea = document.querySelector(".game-area");
     gameArea.appendChild(mensajeNivel);
@@ -230,15 +226,16 @@ function comenzarNivel() {
                 clearInterval(itemInterval);
 
                 // Espera a que todos los ítems hayan terminado de moverse
-                setTimeout(() => {
-                    // Verifica si se debe avanzar al siguiente nivel
-                    if (puntuacion >= 25) {
-                        nivel++;
-                    }
-
-                    // Comienza el siguiente nivel
-                    comenzarNivel();
-                }, 15000); // Espera 10 segundos, que es el tiempo que tardan los ítems en llegar al final
+				setTimeout(() => {
+				  if (aciertos >= 33) {
+					nivel++;
+					aciertos = 0;
+					comenzarNivel();
+				  } else {
+					mostrarGameOver();
+					finalizarJuego();
+				  }
+                }, 15000); // Espera 15 segundos, que es el tiempo que tardan los ítems en llegar al final
             }
         }, 1250); // Intervalo de 1 segundo entre ítems
         // Actualiza el nivel en la pantalla
@@ -249,24 +246,17 @@ function comenzarNivel() {
  // Actualiza el nivel en la pantalla
     actualizarNivel();
 
-function verificarCruceLineaRoja(itemDiv, item) {
-    const redLine = document.querySelector(".red-line");
-    const redLineY = redLine.getBoundingClientRect().top;
-    const itemY = itemDiv.getBoundingClientRect().bottom;
+function verificarCruceLineaRoja(e, a) {
+    let t = document.querySelector(".red-line"),
+        n = t.getBoundingClientRect().top,
+        r = e.getBoundingClientRect().bottom;
 
-    if (itemY >= redLineY && itemDiv.dataset.clicked === 'false') {
-        const esPalabra = palabras.some((palabra) => palabra.W === item.W);
-        if (esPalabra) {
-            itemDiv.classList.add("incorrect");
-            modificarPuntuacion(-1); // Resta puntos en función del nivel
-        } else {
-            itemDiv.classList.add("correct");
-            modificarPuntuacion(+1); // Suma puntos en función del nivel
-        }
-        // Llama a actualizarPuntuacion aquí
+    if (r >= n && "false" === e.dataset.clicked) {
+        let i = palabras.some(e => e.W === a.W);
+        i ? (e.classList.add("incorrect"), modificarPuntuacion(-1)) : (e.classList.add("correct"), modificarPuntuacion(1));
         actualizarPuntuacion();
-    } else if (!itemDiv.classList.contains("correct") && !itemDiv.classList.contains("incorrect")) {
-        requestAnimationFrame(() => verificarCruceLineaRoja(itemDiv, item));
+    } else if (!e.classList.contains("correct") && !e.classList.contains("incorrect")) {
+        requestAnimationFrame(() => verificarCruceLineaRoja(e, a));
     }
 }
 
@@ -316,6 +306,40 @@ function togglePausa() {
             }
         }, 1000);
     }
+}
+
+function mostrarGameOver() {
+  let gameOverElement = document.createElement("div");
+  gameOverElement.classList.add("game-over");
+  gameOverElement.textContent = "GAME OVER";
+  
+  // Crear el botón de reiniciar
+  let restartButton = document.createElement("button");
+  restartButton.textContent = "REINICIAR";
+  restartButton.classList.add("button"); // Utilizar la clase "button" existente
+  restartButton.style.display = "block"; // Añadir estilo para centrar el botón
+  restartButton.style.margin = "0 auto";
+  restartButton.style.marginTop = "40px";
+  restartButton.addEventListener("click", () => {
+    gameOverElement.remove(); // Eliminar el mensaje y el botón de "Game Over"
+    iniciarJuego(); // Reiniciar el juego desde el nivel 1
+  });
+
+  // Añadir el botón de reiniciar debajo del texto "GAME OVER"
+  gameOverElement.appendChild(restartButton);
+
+  let gameArea = document.querySelector(".game-area");
+  gameArea.appendChild(gameOverElement);
+}
+
+// Nueva función para finalizar el juego
+function finalizarJuego() {
+  clearInterval(itemInterval);
+  let gameArea = document.querySelector(".game-area");
+  let items = gameArea.querySelectorAll(".item");
+  items.forEach((item) => {
+    item.remove();
+  });
 }
 
 // Escucha el evento de clic en el botón de inicio

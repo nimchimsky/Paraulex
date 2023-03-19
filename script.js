@@ -269,7 +269,7 @@ function comenzarNivel() {
 			  aciertos >= aciertosminimos
 				? (nivel++, aciertos = 0, comenzarNivel())
 				: (mostrarGameOver(), finalizarJuego());
-			}, 15000));
+			}, 13000));
 		}, 1250);
 
 		actualizarNivel();

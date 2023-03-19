@@ -1,4 +1,6 @@
 // Variables globales
+let itemsxnivel = 30;
+let aciertosminimos = 20;
 let nivel = 1;
 let puntuacion = 0;
 let palabras = [];
@@ -26,9 +28,9 @@ function seleccionarItems() {
     const palabrasNivel = palabras.filter((item) => item.L === nivel);
     const pseudopalabrasNivel = pseudopalabras.filter((item) => item.L === nivel);
 
-    // Selecciona 25 palabras y 25 pseudopalabras al azar
-    const palabrasSeleccionadas = seleccionarAleatoriamente(palabrasNivel, 25);
-    const pseudopalabrasSeleccionadas = seleccionarAleatoriamente(pseudopalabrasNivel, 25);
+    // Selecciona 15 palabras y 15 pseudopalabras al azar
+    const palabrasSeleccionadas = seleccionarAleatoriamente(palabrasNivel, itemsxnivel / 2);
+    const pseudopalabrasSeleccionadas = seleccionarAleatoriamente(pseudopalabrasNivel, itemsxnivel / 2);
 
     // Combina y mezcla las palabras y pseudopalabras
     const items = mezclarArrays(palabrasSeleccionadas, pseudopalabrasSeleccionadas);
@@ -74,6 +76,7 @@ function modificarPuntuacion(e) {
     aciertos++;
   }
   puntuacion += e * nivel;
+  actualizarBarraDeProgreso();
   actualizarPuntuacion();
 }
 
@@ -137,7 +140,7 @@ function mostrarItem(item) {
 		// Verifica si el ítem ha cruzado completamente la línea roja
 		const redLine = document.querySelector(".red-line");
 		const redLineY = redLine.getBoundingClientRect().top;
-		const itemY = itemDiv.getBoundingClientRect().bottom;
+		const itemY = itemDiv.getBoundingClientRect().top;
 
 		if (itemY >= redLineY) {
 			return; // Si el ítem ha cruzado la línea roja, no hacer nada
@@ -176,6 +179,19 @@ function actualizarNivel() {
     nivelElement.textContent = nivel;
 }
 
+function actualizarBarraDeProgreso() {
+  const progressYellow = document.querySelector(".progress-yellow");
+  const progressGreen = document.querySelector(".progress-green");
+  const progressBarWidth = document.querySelector(".progress-bar").clientWidth;
+
+  const yellowWidth = Math.min(aciertos, aciertosminimos - 1) * (progressBarWidth / itemsxnivel);
+  const greenWidth = Math.max(0, 1 + aciertos - aciertosminimos) * (progressBarWidth / itemsxnivel);
+
+  progressYellow.style.width = `${yellowWidth}px`;
+  progressGreen.style.width = `${greenWidth}px`;
+  progressGreen.style.left = `${yellowWidth}px`;
+}
+
 // Función para iniciar el juego
 function iniciarJuego(nivelInicial = 1) {
     reiniciarAciertos();
@@ -185,6 +201,7 @@ function iniciarJuego(nivelInicial = 1) {
         nivel = nivelInicial;
         puntuacion = 0;
         actualizarPuntuacion();
+		actualizarBarraDeProgreso();
 	
         // Comienza el nivel
         comenzarNivel();
@@ -202,48 +219,57 @@ function mostrarMensajeNivel() {
     return mensajeNivel;
 }
 
+function mostrarMensajeNivel() {
+  const message = document.createElement("div");
+  message.classList.add("level-message");
+  message.textContent = `Nivell ${nivel}`;
+  message.style.left = "50%";
+  message.style.top = "-100px";
+  message.style.transform = "translateX(-50%)";
+
+  const gameArea = document.querySelector(".game-area");
+  gameArea.appendChild(message);
+
+  // Anima el mensaje de nivel hacia abajo
+  const zonaDeJuego = document.querySelector(".game-area");
+  const distancia = zonaDeJuego.clientHeight - message.clientHeight;
+  const duracion = 15; // 15 segundos
+  const animation = message.animate([{ top: "0px" }, { top: `${distancia}px` }], {
+    duration: duracion * 1000,
+    easing: "linear",
+  });
+
+  // Verifica si el mensaje de nivel cruza la línea roja y lo elimina
+  verificarCruceLineaRoja(message, () => {
+    message.remove();
+  });
+}
+
 // Comienza el nivel
 function comenzarNivel() {
-     reiniciarAciertos();
-	// Muestra el mensaje del nivel actual
-    const mensajeNivel = mostrarMensajeNivel();
+    reiniciarAciertos();
+	actualizarBarraDeProgreso();
+	mostrarMensajeNivel(); 
 
-    // Espera 2 segundos antes de continuar con los ítems
-    setTimeout(() => {
-        // Elimina el mensaje del nivel
-        mensajeNivel.remove();
-
-        // Selecciona y mezcla los ítems para el nivel actual
-        const items = seleccionarItems();
-
-        // Muestra los ítems en la pantalla con un intervalo de 1 segundo
-        contadorItems = 0; // Reinicia el contador de ítems (modifica esta línea)
+       setTimeout(() => {
+        const items = seleccionarItems(); // Selecciona y mezcla los ítems para el nivel actual
+        contadorItems = 0; 
         clearInterval(itemInterval);
-        itemInterval = setInterval(() => {
-            mostrarItem(items[contadorItems]);
-            contadorItems++;
 
-            // Verifica si se han mostrado todos los ítems
-            if (contadorItems >= items.length) {
-                clearInterval(itemInterval);
+		itemInterval = setInterval(() => {
+		  mostrarItem(items[contadorItems]);
+		  ++contadorItems >= items.length &&
+			(clearInterval(itemInterval),
+			setTimeout(() => {
+			  aciertos >= aciertosminimos
+				? (nivel++, aciertos = 0, comenzarNivel())
+				: (mostrarGameOver(), finalizarJuego());
+			}, 15000));
+		}, 1250);
 
-                // Espera a que todos los ítems hayan terminado de moverse
-				setTimeout(() => {
-				  if (aciertos >= 33) {
-					nivel++;
-					aciertos = 0;
-					comenzarNivel();
-				  } else {
-					mostrarGameOver();
-					finalizarJuego();
-				  }
-                }, 15000); // Espera 15 segundos, que es el tiempo que tardan los ítems en llegar al final
-            }
-        }, 1250); // Intervalo de 1 segundo entre ítems
-        // Actualiza el nivel en la pantalla
-        actualizarNivel();
-    }, 2000); // Espera de 2 segundos antes de comenzar con los ítems
-}
+		actualizarNivel();
+	  }, 3000);
+	}
 
  // Actualiza el nivel en la pantalla
     actualizarNivel();
@@ -255,7 +281,7 @@ function reiniciarAciertos() {
 function verificarCruceLineaRoja(e, a) {
     let t = document.querySelector(".red-line"),
         n = t.getBoundingClientRect().top,
-        r = e.getBoundingClientRect().bottom;
+        r = e.getBoundingClientRect().top;
 
     if (r >= n && "false" === e.dataset.clicked) {
         let i = palabras.some(e => e.W === a.W);
@@ -302,7 +328,7 @@ function togglePausa() {
                 // Espera a que todos los ítems hayan terminado de moverse
                 setTimeout(() => {
                     // Verifica si se debe avanzar al siguiente nivel
-                    if (puntuacion >= 25) {
+                    if (puntuacion >= aciertosminimos) {
                         nivel++;
                     }
 

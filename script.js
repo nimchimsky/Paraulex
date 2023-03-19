@@ -180,16 +180,21 @@ function actualizarNivel() {
 }
 
 function actualizarBarraDeProgreso() {
-  const progressYellow = document.querySelector(".progress-yellow");
+  const progressOrange = document.querySelector(".progress-orange");
   const progressGreen = document.querySelector(".progress-green");
+  const progressDivider = document.querySelector(".progress-divider");
   const progressBarWidth = document.querySelector(".progress-bar").clientWidth;
 
-  const yellowWidth = Math.min(aciertos, aciertosminimos - 1) * (progressBarWidth / itemsxnivel);
-  const greenWidth = Math.max(0, 1 + aciertos - aciertosminimos) * (progressBarWidth / itemsxnivel);
+  const aciertosminimosf = aciertosminimos -1
+  const aciertosminimosb = aciertosminimos -0.5
+  const orangeWidth = Math.min(aciertos, aciertosminimosf) * (progressBarWidth / itemsxnivel);
+  const greenWidth = Math.max(0, aciertos - aciertosminimosf) * (progressBarWidth / itemsxnivel);
+  const dividerPosition = (aciertosminimosb / itemsxnivel) * progressBarWidth;
 
-  progressYellow.style.width = `${yellowWidth}px`;
+  progressOrange.style.width = `${orangeWidth}px`;
   progressGreen.style.width = `${greenWidth}px`;
-  progressGreen.style.left = `${yellowWidth}px`;
+  progressGreen.style.left = `${orangeWidth}px`;
+  progressDivider.style.left = `${dividerPosition}px`;
 }
 
 // Función para iniciar el juego
@@ -268,7 +273,7 @@ function comenzarNivel() {
 		}, 1250);
 
 		actualizarNivel();
-	  }, 3000);
+	  }, 2000);
 	}
 
  // Actualiza el nivel en la pantalla

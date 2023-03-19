@@ -77,9 +77,10 @@ button:hover {
   width: 100%;
   height: 20px;
   background-color: white;
+  z-index: 1;
 }
 
-.progress-yellow,
+.progress-orange,
 .progress-green {
   position: absolute;
   top: 0;
@@ -88,12 +89,22 @@ button:hover {
   width: 0;
 }
 
-.progress-yellow {
+.progress-orange {
   background-color: orange;
 }
 
 .progress-green {
   background-color: green;
+    z-index: 3;
+}
+
+.progress-divider {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: 4px;
+  background-color: orange;
+  z-index: 2;
 }
 
 .game-area {
